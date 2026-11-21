@@ -17,14 +17,26 @@
         let
           pkgs = import nixpkgs {
             inherit system;
-            config.allowUnfreePredicate = pkg: lib.getName pkg == "vscode";
+            config.allowUnfreePredicate = pkg:
+              builtins.elem (lib.getName pkg) [ "vscode" "vscode-extension-ms-vscode-cpptools" ];
           };
           avr = pkgs.pkgsCross.avr;
           isLinux = pkgs.stdenv.hostPlatform.isLinux;
+          bloom = pkgs.callPackage ./bloom.nix { };
+          hasBloom = lib.meta.availableOn pkgs.stdenv.hostPlatform bloom;
+          cppDebug = pkgs.vscode-extensions.ms-vscode.cpptools.overrideAttrs (old: {
+            # Same VSIX and hash as Nixpkgs; use the upstream GitHub release
+            # because the Marketplace asset endpoint can stall downloads.
+            src = pkgs.fetchurl {
+              name = "ms-vscode-cpptools.vsix";
+              url = "https://github.com/microsoft/vscode-cpptools/releases/download/v${old.version}/cpptools-linux-x64.vsix";
+              hash = old.src.outputHash;
+            };
+          });
           extensions = with pkgs.vscode-extensions; [
             llvm-vs-code-extensions.vscode-clangd
             ms-vscode.cmake-tools
-          ];
+          ] ++ lib.optional hasBloom cppDebug;
           editorAvailable = lib.all (lib.meta.availableOn pkgs.stdenv.hostPlatform)
             ([ pkgs.vscode ] ++ extensions);
           vscode = pkgs.vscode-with-extensions.override { vscodeExtensions = extensions; };
@@ -64,7 +76,10 @@
         in {
           shells = { default = shell [ ]; }
             // lib.optionalAttrs editorAvailable { editor = shell [ courseCode ]; }
-            // lib.optionalAttrs isLinux { debug = shell [ pkgs.gdb ]; };
+            // lib.optionalAttrs isLinux {
+              debug = shell ([ pkgs.gdb ] ++ lib.optional hasBloom bloom);
+            };
+          packages = lib.optionalAttrs hasBloom { inherit bloom; };
           checks.firmware = pkgs.runCommand "mpt-firmware-smoke-test" (toolVars // {
             nativeBuildInputs = [ toolEnv ];
           }) ''
@@ -84,5 +99,6 @@
     in {
       devShells = forSystems (system: environments.${system}.shells);
       checks = forSystems (system: environments.${system}.checks);
+      packages = forSystems (system: environments.${system}.packages);
     };
 }

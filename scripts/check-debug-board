@@ -1,0 +1,7 @@
+#!/bin/sh
+exec "$(dirname -- "$0")/in-env" --debug sh -c '
+    if ! lsusb -d 03eb:2175 2>/dev/null; then
+        echo "Curiosity Nano not found. Plug it in with a USB data cable (and attach it to WSL2 if applicable). See README.md." >&2
+        exit 1
+    fi
+'

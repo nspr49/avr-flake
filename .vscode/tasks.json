@@ -20,6 +20,14 @@
       "problemMatcher": ["$gcc"]
     },
     {
+      "label": "Prepare Curiosity Nano debug session",
+      "type": "process",
+      "command": "${workspaceFolder}/scripts/check-debug-board",
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOn": "Build firmware",
+      "problemMatcher": []
+    },
+    {
       "label": "Flash Curiosity Nano",
       "type": "process",
       "command": "${workspaceFolder}/scripts/in-env",

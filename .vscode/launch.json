@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Curiosity Nano (already flashed)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/avr128db48_project.elf",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Prepare Curiosity Nano debug session",
+      "MIMode": "gdb",
+      "miDebuggerPath": "${workspaceFolder}/scripts/gdb",
+      "miDebuggerServerAddress": "127.0.0.1:1442",
+      "debugServerPath": "${workspaceFolder}/scripts/in-env",
+      "debugServerArgs": "--debug bloom",
+      "serverStarted": "Waiting for GDB RSP connection",
+      "filterStdout": true,
+      "serverLaunchTimeout": 20000,
+      "launchCompleteCommand": "exec-continue",
+      "hardwareBreakpoints": { "require": true },
+      "externalConsole": false
+    }
+  ]
+}

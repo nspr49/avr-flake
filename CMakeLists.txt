@@ -14,6 +14,7 @@ target_compile_options(firmware PRIVATE
 )
 target_link_options(firmware PRIVATE -mmcu=avr128db48 -Wl,--gc-sections)
 if(DEFINED ENV{MPT_AVR_LIBDIR})
+
     # Search the AVR128DB48 multilib before the wrapper's other AVR libraries.
     target_link_directories(firmware PRIVATE "$ENV{MPT_AVR_LIBDIR}")
 endif()

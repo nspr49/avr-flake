@@ -7,6 +7,8 @@
 int main(void) {
     // PB3 drives the user LED on the AVR128DB48 Curiosity Nano.
     PORTB.DIRSET = PIN3_bm;
+    PORTB.DIRSET = PIN4_bm;
+    
     for (;;) {
         PORTB.OUTTGL = PIN3_bm;
         _delay_ms(500);
