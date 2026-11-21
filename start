@@ -1,0 +1,18 @@
+#!/bin/sh
+# Open the course workspace without requiring students to enter a Nix shell.
+set -eu
+CDPATH='' cd -- "$(dirname -- "$0")"
+
+if [ "$(uname -s)" = Linux ] && grep -qi microsoft /proc/sys/kernel/osrelease; then
+    if ! command -v code >/dev/null 2>&1; then
+        printf '%s\n' 'Windows VS Code was not found from WSL. Install VS Code and its WSL extension on Windows, then reopen your WSL terminal. See README.md.' >&2
+        exit 127
+    fi
+    exec code "$@" .
+fi
+
+if ! command -v nix >/dev/null 2>&1; then
+    printf '%s\n' 'Nix was not found. Install Nix and reopen your terminal. See README.md.' >&2
+    exit 127
+fi
+exec nix --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file .#editor -c course-code "$@" .
