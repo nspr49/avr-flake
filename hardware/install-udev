@@ -1,0 +1,24 @@
+#!/bin/sh
+# Explicit, one-time administration on systemd/udev Linux. Not a shell hook.
+set -eu
+
+if [ "$(uname -s)" != Linux ] || ! command -v udevadm >/dev/null 2>&1; then
+    printf '%s\n' 'This installer needs Linux with udev. See README.md for macOS and WSL.' >&2
+    exit 1
+fi
+if [ "$(id -u)" -eq 0 ]; then
+    printf '%s\n' 'Run as your normal student user (without sudo); the installer will ask for sudo.' >&2
+    exit 1
+fi
+sudo -v
+if ! sudo udevadm control --ping >/dev/null; then
+    printf '%s\n' 'udev is not responding. Start systemd-udevd first (see README.md for WSL).' >&2
+    exit 1
+fi
+
+rule=70-mpt-curiosity-nano.rules
+sudo groupadd -f mpt-avr
+sudo usermod -aG mpt-avr "$(id -un)"
+sudo install -m 0644 "$(dirname -- "$0")/$rule" "/etc/udev/rules.d/$rule"
+sudo udevadm control --reload
+printf '%s\n' 'Rules installed. Sign out and back in to pick up group membership, then reconnect the board.'

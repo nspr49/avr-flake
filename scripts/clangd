@@ -1,0 +1,5 @@
+#!/bin/sh
+# Only allow compiler probes for the pinned Nix AVR toolchain, never an
+# arbitrary compiler path from a workspace's compilation database.
+exec "$(dirname -- "$0")/in-env" clangd \
+    '--query-driver=/nix/store/*-mpt-dev-tools/bin/avr-gcc,/nix/store/*-mpt-dev-tools/bin/avr-g++,/nix/store/*-avr-gcc-wrapper-*/bin/avr-gcc,/nix/store/*-avr-gcc-wrapper-*/bin/avr-g++' "$@"

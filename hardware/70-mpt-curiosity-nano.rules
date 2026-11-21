@@ -1,0 +1,4 @@
+# AVR128DB48 Curiosity Nano on-board nEDBG (AVRDUDE pkobn_updi).
+# Local desktop users get seat access; mpt-avr also covers headless/WSL use.
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2175", GROUP="mpt-avr", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2175", GROUP="mpt-avr", MODE="0660", TAG+="uaccess"

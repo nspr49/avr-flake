@@ -1,0 +1,8 @@
+{
+  "clangd.path": "${workspaceFolder}/scripts/clangd",
+  "clangd.arguments": ["--background-index"],
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "cmake.cmakePath": "${workspaceFolder}/scripts/cmake",
+  "cmake.useCMakePresets": "always",
+  "cmake.configureOnOpen": false
+}

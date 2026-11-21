@@ -1,0 +1,6 @@
+/build/
+/.cache/
+/result
+/result-*
+/.direnv/
+.DS_Store

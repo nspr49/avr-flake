@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Configure firmware",
+      "type": "process",
+      "command": "${workspaceFolder}/scripts/cmake",
+      "args": ["--preset", "course"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build firmware",
+      "type": "process",
+      "command": "${workspaceFolder}/scripts/cmake",
+      "args": ["--build", "--preset", "course"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOn": "Configure firmware",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Flash Curiosity Nano",
+      "type": "process",
+      "command": "${workspaceFolder}/scripts/in-env",
+      "args": ["avrdude", "-c", "pkobn_updi", "-p", "avr128db48", "-P", "usb", "-U", "flash:w:build/avr128db48_project.hex:i"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOn": "Build firmware",
+      "problemMatcher": []
+    }
+  ]
+}

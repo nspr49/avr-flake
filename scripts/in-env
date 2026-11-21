@@ -1,0 +1,20 @@
+#!/bin/sh
+# Preserve cwd for tooling such as CMake Tools and clangd.
+set -eu
+if [ "${MPT_DEV_SHELL:-}" = 1 ]; then
+    exec "$@"
+fi
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
+if command -v nix >/dev/null 2>&1; then
+    nix=nix
+elif [ -x /nix/var/nix/profiles/default/bin/nix ]; then
+    nix=/nix/var/nix/profiles/default/bin/nix
+elif [ -x "$HOME/.nix-profile/bin/nix" ]; then
+    nix=$HOME/.nix-profile/bin/nix
+else
+    printf '%s\n' 'Nix not found. Install Nix in this OS (inside Linux for WSL), then restart your editor.' >&2
+    exit 127
+fi
+
+exec "$nix" --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file "$root" --command "$@"

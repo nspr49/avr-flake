@@ -1,0 +1,6 @@
+CompileFlags:
+  CompilationDatabase: build
+  # clangd gets the AVR target and header paths from the GCC driver, but
+  # cannot use GCC's AVR128DB48 device specs. Supply those macros here.
+  Remove: [-mmcu=*, -B*]
+  Add: [-D__AVR_AVR128DB48__, -D__AVR_ARCH__=104]
