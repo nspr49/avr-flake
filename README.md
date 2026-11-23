@@ -27,13 +27,13 @@ cmake --preset course
 cmake --build --preset course
 ```
 
-This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. For another editor, use `scripts/clangd` as the language server. Type `exit` to leave the shell.
+This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. For another editor, use `scripts/clangd` as the language server; it configures CMake automatically before starting, so completions work before the first build. Type `exit` to leave the shell.
 
 ## 3. Open VS Code
 
 From the repo root, run `./start`. You don't need to enter `nix develop` first.
 
-**Linux desktop or macOS:** the launcher opens a separate course profile with Microsoft VS Code and pinned clangd and CMake Tools extensions from `vscode-with-extensions`. Press **Ctrl+Shift+B** (**⌘⇧B** on macOS) to configure and build. The first build creates the compilation database. To use the CMake Tools commands instead, select the `course` configure/build preset. If you update `flake.lock`, quit all course Code windows before relaunching.
+**Linux desktop or macOS:** the launcher opens a separate course profile with Microsoft VS Code and pinned clangd and CMake Tools extensions from `vscode-with-extensions`. Press **Ctrl+Shift+B** (**⌘⇧B** on macOS) to configure and build. clangd automatically configures CMake on startup, so AVR completions and header lookup work before the first build (after the initial Nix downloads). This only generates build files; it does not compile or flash firmware. To use the CMake Tools commands instead, select the `course` configure/build preset. If you update `flake.lock`, quit all course Code windows before relaunching.
 
 **Windows 11 / WSL2:** install Windows VS Code and the [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl). Run `./start` from your WSL terminal. If Windows VS Code is not on your WSL `PATH`, use **WSL: Open Folder in WSL** from VS Code instead. Verify the bottom-left status shows **WSL**. Install the two recommended extensions **in WSL**, then use **Ctrl+Shift+B**. VS Code and its extensions are not pinned in this fallback; the build, language server, and flashing tools still come from the same `flake.lock`. Workspace scripts enter the Nix environment even when the editor was not launched from `nix develop`. You can also use this fallback with an existing editor on Linux or macOS.
 
@@ -132,4 +132,4 @@ Bloom startup was checked without hardware; on-board attach and stepping still n
 
 - `flake.lock` locks the immutable Nixpkgs release snapshot and its content hash. Use `nix flake update nixpkgs` deliberately and commit the updated lock only after validation.
 - `nix flake check` builds the starter, checks the AVR architecture, dry-runs programming/verification, and runs `clangd --check`. Run it on each native host to validate runtime support. `nix flake check --all-systems --no-build` checks evaluation only.
-- If CMake refers to an old container or Nix store path (e.g. after changing the pin), run `cmake --fresh --preset course` inside the shell. Remove the generated `build/` directory first if it still contains artifacts from a different generator. If clangd fails before the first configuration, build once and restart clangd.
+- If CMake refers to an old container or Nix store path (e.g. after changing the pin), run `cmake --fresh --preset course` inside the shell. Remove the generated `build/` directory first if it still contains artifacts from a different generator. clangd configures CMake each time it starts; if configuration fails, fix the reported error and run **clangd: Restart language server**.

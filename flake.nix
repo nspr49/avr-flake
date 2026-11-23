@@ -87,11 +87,12 @@
             cp -R ${firmwareSource} workspace
             chmod -R u+w workspace
             cd workspace
-            cmake --preset course
+            # First-open completion must work without a prior configure/build.
+            ./scripts/clangd --check=src/main.c
+            test -s build/compile_commands.json
             cmake --build --preset course
             avr-readelf -h build/avr128db48_project.elf | grep 'avr:104'
             avrdude -c dryrun -p avr128db48 -U flash:w:build/avr128db48_project.hex:i
-            ./scripts/clangd --check=src/main.c
             mkdir -p "$out"
             cp build/avr128db48_project.{elf,hex} "$out/"
           '';
