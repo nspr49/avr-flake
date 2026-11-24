@@ -17,10 +17,22 @@
       "options": { "cwd": "${workspaceFolder}" },
       "dependsOn": "Configure firmware",
       "group": { "kind": "build", "isDefault": true },
-      "problemMatcher": ["$gcc"]
+      "problemMatcher": {
+        "owner": "avr-gcc",
+        "source": "avr-gcc",
+        "fileLocation": ["autodetect", "${workspaceFolder}/build"],
+        "pattern": {
+          "regexp": "^(.+?):(\\d+)(?::(\\d+))?:\\s+(?:fatal )?(error|warning):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
     },
     {
-      "label": "Prepare Curiosity Nano debug session",
+      "label": "Check Curiosity Nano USB",
       "type": "process",
       "command": "${workspaceFolder}/scripts/check-debug-board",
       "options": { "cwd": "${workspaceFolder}" },
@@ -33,7 +45,7 @@
       "command": "${workspaceFolder}/scripts/in-env",
       "args": ["avrdude", "-c", "pkobn_updi", "-p", "avr128db48", "-P", "usb", "-U", "flash:w:build/avr128db48_project.hex:i"],
       "options": { "cwd": "${workspaceFolder}" },
-      "dependsOn": "Build firmware",
+      "dependsOn": "Check Curiosity Nano USB",
       "problemMatcher": []
     }
   ]

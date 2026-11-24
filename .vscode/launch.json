@@ -2,12 +2,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Curiosity Nano (already flashed)",
+      "name": "Flash and Debug Curiosity Nano",
       "type": "gdbtarget",
       "request": "launch",
       "program": "${workspaceFolder}/build/avr128db48_project.elf",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "Prepare Curiosity Nano debug session",
+      "preLaunchTask": "Flash Curiosity Nano",
       "gdb": "${workspaceFolder}/scripts/gdb",
       "run": "all",
       "target": {
