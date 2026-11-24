@@ -5,6 +5,7 @@
     "--background-index",
     "--query-driver=/nix/store/*-mpt-dev-tools/bin/avr-gcc,/nix/store/*-mpt-dev-tools/bin/avr-g++,/nix/store/*-avr-gcc-wrapper-*/bin/avr-gcc,/nix/store/*-avr-gcc-wrapper-*/bin/avr-g++"
   ],
+  "memory-view.trackDebuggers": ["gdbtarget"],
   "terminal.integrated.profiles.linux": {
     "Course Nix shell": {
       "path": "${workspaceFolder}/scripts/in-env"

@@ -137,6 +137,8 @@ The workspace recommends Eclipse CDT's [**Memory Inspector**](https://open-vsx.o
 2. Run **Memory: Show Memory Inspector** from the Command Palette. You can also right-click a variable in the **Variables** view and select **Show in Memory Inspector**.
 3. To inspect SRAM directly, enter `0x804000` as the start address. AVR GDB adds a `0x800000` offset to data addresses; the chip's SRAM starts at data address `0x4000`.
 
+If you use **MemoryView** (`mcu-debug.memory-view`) instead, **Add new memory view** is its command. The workspace adds CDT's `gdbtarget` to `memory-view.trackDebuggers`. If MemoryView reports **No session with the session id**, stop debugging, reload the window, then start a new debug session and pause before adding the view.
+
 Board-level memory reads still need testing. Avoid browsing memory-mapped peripheral registers indiscriminately: some registers have side effects when read.
 
 ### From a terminal
