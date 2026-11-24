@@ -34,7 +34,7 @@
           ];
           # Expose executables without mixing host package headers and setup
           # hooks into the AVR compiler environment. Keep the compiler path
-          # identical across shells so all variants can share a CMake cache.
+          # identical across shells.
           toolEnv = pkgs.buildEnv {
             name = "mpt-dev-tools";
             paths = tools;
@@ -57,15 +57,15 @@
                   root=$(dirname "$root")
                 done
                 cd "$root" || exit 1
-                # Let desktop VS Code run clangd directly, without a Nix launcher.
+                # Keep a direct link available for editors that do not use the launcher.
                 mkdir -p .nix-tools
                 ln -sfn ${pkgs.clang-tools}/bin/clangd .nix-tools/clangd
                 if [ ! -s build/avr128db48_project.elf ] ||
                    [ ! -s build/avr128db48_project.hex ] ||
                    [ ! -s build/compile_commands.json ]; then
-                  printf '%s\n' 'Preparing the initial firmware build...'
+                  printf '%s\n' 'Preparing the firmware build and clangd compilation database...'
                   if ! { cmake --preset course && cmake --build --preset course; }; then
-                    printf '%s\n' 'Initial firmware build failed; fix the error and rebuild with cmake --preset course && cmake --build --preset course.'
+                    printf '%s\n' 'Firmware setup failed; fix the error and rebuild with cmake --preset course && cmake --build --preset course.'
                   fi
                 fi
               ) >&2

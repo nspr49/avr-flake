@@ -25,14 +25,14 @@ From the repo root:
 nix develop
 ```
 
-The shell performs the initial configure and build automatically, including when entered through VS Code's workspace scripts. Later shell entries skip it when all generated outputs are present. After editing sources, rebuild explicitly:
+The shell performs the initial configure and build automatically, including when entered through VS Code's workspace scripts. Later shell entries skip setup when all generated outputs are present. After editing sources, rebuild explicitly:
 
 ```sh
 cmake --preset course
 cmake --build --preset course
 ```
 
-This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. Shell entry creates `.nix-tools/clangd`, a symlink to the original pinned clangd binary, not a launcher script. Other editors can use that path with the `--query-driver` argument from `.vscode/settings.json`. Type `exit` to leave the shell.
+This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. VS Code starts the pinned clangd through `scripts/clangd`, even before you open the first Nix terminal. Shell entry also creates a direct link at `.nix-tools/clangd`; other editors can use it with the `--query-driver` argument from `.vscode/settings.json`. Type `exit` to leave the shell.
 
 ## 3. Open the editor
 
@@ -40,7 +40,16 @@ Run `nix develop` once from the repo root to prepare the initial build and clang
 
 **Linux desktop or macOS:** open the workspace in [VSCodium](https://vscodium.com/) (`codium .`) or VS Code (`code .`), outside Nix. Install the recommended **clangd** and **CDT GDB Debug Adapter** extensions when prompted. Both are open source and available on Open VSX. clangd provides language features; CDT connects GDB to PyAvrOCD. The editor and extensions are installed separately, not provided or pinned by the flake.
 
-Trust the workspace to enable its tooling and terminal settings. New integrated terminals automatically enter `nix develop` using the workspace's **Course Nix shell** profile; build tasks also enter Nix through workspace scripts. If you opened VS Code before the first shell entry, open an integrated terminal to prepare the tools, then run **clangd: Restart language server**. Press **Ctrl+Shift+B** (**⌘⇧B** on macOS) to configure and rebuild after edits. None of these steps flashes firmware.
+Trust the workspace to enable its tooling and terminal settings. New integrated terminals automatically enter `nix develop` using the workspace's **Course Nix shell** profile; build tasks also enter Nix through workspace scripts. If clangd was already running when you updated the workspace, run **clangd: Restart language server**. Press **Ctrl+Shift+B** (**⌘⇧B** on macOS) to configure and rebuild after edits. None of these steps flashes firmware.
+
+**If the shell or build doesn't start on macOS:** fully quit the editor with **⌘Q** after installing Nix, then reopen the repo folder and confirm the workspace is trusted. Close any restored terminal and explicitly choose **Terminal: Create New Terminal (With Profile) → Course Nix shell**. The first launch may take a few minutes while Nix downloads the toolchain. If it still fails, run these in macOS Terminal from the repo root to see the error directly:
+
+```sh
+nix --version
+./scripts/in-env
+```
+
+Once you're in the course shell, run `cmake --preset course && cmake --build --preset course`.
 
 **Windows 11 / WSL2:** for a non-proprietary editor, run the Linux build of VSCodium inside WSL2 using [WSLg](https://learn.microsoft.com/windows/wsl/tutorials/gui-apps). For the Windows VS Code workflow, install VS Code and the [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl). Run `code .` from the repo root in your WSL terminal. If Windows VS Code is not on your WSL `PATH`, use **WSL: Open Folder in WSL** from VS Code instead. Verify the bottom-left status shows **WSL**. Install the two recommended extensions **in WSL**, then use **Ctrl+Shift+B**. The same workspace terminal profile and scripts enter Nix inside WSL; the build, language server, and flashing tools come from `flake.lock` on all platforms.
 
@@ -122,7 +131,7 @@ For example, `>set {unsigned char}0x800422 = 8` writes one byte to `PORTB.DIRCLR
 
 ### Memory view
 
-Install Eclipse CDT's [**Memory Inspector**](https://open-vsx.org/extension/eclipse-cdt/memory-inspector) (`eclipse-cdt.memory-inspector`) if you want a memory view. In WSL or SSH, install it in the remote environment where the debugger runs.
+The workspace recommends Eclipse CDT's [**Memory Inspector**](https://open-vsx.org/extension/eclipse-cdt/memory-inspector) but does not install it automatically. In your editor's **Extensions** view, search for `@id:eclipse-cdt.memory-inspector` and click **Install**. In WSL or SSH, install it in the remote environment where the debugger runs.
 
 1. Start debugging and pause at a breakpoint.
 2. Run **Memory: Show Memory Inspector** from the Command Palette. You can also right-click a variable in the **Variables** view and select **Show in Memory Inspector**.
@@ -155,4 +164,4 @@ Native execution on macOS and on-board attach and stepping still need testing. F
 
 - `flake.lock` locks the immutable Nixpkgs release snapshot and its content hash. Use `nix flake update nixpkgs` deliberately and commit the updated lock only after validation.
 - `nix flake check` builds the starter, checks the AVR architecture, dry-runs programming/verification, and runs `clangd --check`. Run it on each native host to validate runtime support. `nix flake check --all-systems --no-build` checks evaluation only.
-- After changing `flake.lock`, enter a new `nix develop` shell to refresh the clangd symlink, then run **clangd: Restart language server** in VS Code. If CMake refers to an old container or Nix store path, run `cmake --fresh --preset course` and `cmake --build --preset course` inside the shell. Remove the generated `build/` directory first if it still contains artifacts from a different generator. clangd reads the compilation database directly; it does not configure CMake itself.
+- After changing `flake.lock`, run **clangd: Restart language server** in VS Code to pick up the new toolchain. If you use the direct `.nix-tools/clangd` link in another editor, open a new Nix shell first to refresh it.

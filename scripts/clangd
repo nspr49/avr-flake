@@ -1,0 +1,6 @@
+#!/bin/sh
+# Start the pinned clangd even if the editor opens before the first Nix shell.
+set -eu
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
+cd -- "$root"
+exec "$root/scripts/in-env" clangd "$@"

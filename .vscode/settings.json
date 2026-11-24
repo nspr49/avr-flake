@@ -1,5 +1,6 @@
 {
-  "clangd.path": "${workspaceFolder}/.nix-tools/clangd",
+  "clangd.path": "${workspaceFolder}/scripts/clangd",
+  "clangd.useScriptAsExecutable": true,
   "clangd.arguments": [
     "--background-index",
     "--query-driver=/nix/store/*-mpt-dev-tools/bin/avr-gcc,/nix/store/*-mpt-dev-tools/bin/avr-g++,/nix/store/*-avr-gcc-wrapper-*/bin/avr-gcc,/nix/store/*-avr-gcc-wrapper-*/bin/avr-g++"

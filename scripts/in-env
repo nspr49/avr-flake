@@ -17,18 +17,35 @@ if [ "${1:-}" = --debug ]; then
 elif [ "${MPT_DEV_SHELL:-}" = 1 ] && [ "$#" -gt 0 ]; then
     exec "$@"
 fi
-if command -v nix >/dev/null 2>&1; then
-    nix=nix
-elif [ -x /nix/var/nix/profiles/default/bin/nix ]; then
-    nix=/nix/var/nix/profiles/default/bin/nix
-elif [ -x "$HOME/.nix-profile/bin/nix" ]; then
-    nix=$HOME/.nix-profile/bin/nix
-else
-    printf '%s\n' 'Nix not found. Install Nix in this OS (inside Linux for WSL), then restart your editor.' >&2
+if ! command -v nix >/dev/null 2>&1; then
+    # A GUI editor (notably when launched from the macOS Dock) may not
+    # inherit the Nix installer’s PATH and certificate settings.
+    daemon_profile=/nix/var/nix/profiles/default
+    user_profile=${NIX_STATE_HOME:-${XDG_STATE_HOME:-$HOME/.local/state}/nix}/profile
+    if [ -x "$daemon_profile/bin/nix" ]; then
+        if [ -r "$daemon_profile/etc/profile.d/nix-daemon.sh" ]; then
+            . "$daemon_profile/etc/profile.d/nix-daemon.sh"
+        fi
+        export PATH="$daemon_profile/bin:$PATH"
+    else
+        for profile in "$user_profile" "$HOME/.nix-profile"; do
+            if [ -x "$profile/bin/nix" ]; then
+                if [ -r "$profile/etc/profile.d/nix.sh" ]; then
+                    . "$profile/etc/profile.d/nix.sh"
+                fi
+                export PATH="$profile/bin:$PATH"
+                break
+            fi
+        done
+    fi
+fi
+if ! command -v nix >/dev/null 2>&1; then
+    printf '%s\n' 'Nix not found. Check `nix --version` in a new system terminal after installing Nix, then fully quit and reopen your editor.' >&2
     exit 127
 fi
 
 if [ "$#" -eq 0 ]; then
-    exec "$nix" --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file "$shell"
+    cd -- "$root"
+    exec nix --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file "$shell"
 fi
-exec "$nix" --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file "$shell" --command "$@"
+exec nix --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file "$shell" --command "$@"
