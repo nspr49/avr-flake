@@ -18,6 +18,28 @@
         "serverPortRegExp": "Listening on port ([0-9]+) for gdb connection",
         "portDetectionTimeout": 20000
       }
+    },
+    {
+      "name": "Build and Flash Curiosity Nano (no debug)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Build and Flash Curiosity Nano",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "exit 0"],
+      "console": "internalConsole",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Build Firmware Only",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Build firmware",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "exit 0"],
+      "console": "internalConsole",
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }
