@@ -2,20 +2,20 @@
 
 Build and flash the **AVR128DB48 Curiosity Nano** without Docker or a separately installed AVR toolchain. The starter in `src/main.c` blinks the board's user LED (PB3). Edit it or add sources to the `firmware` target in `CMakeLists.txt`.
 
-**Daily workflow:** from the course folder, run `./start`, then press **Ctrl+Shift+B** (macOS: **⌘⇧B**) to build. For first-time setup, follow the steps below.
+**Daily workflow:** open the course folder in VSCodium (`codium .`) or VS Code (`code .`), then press **Ctrl+Shift+B** (macOS: **⌘⇧B**) to rebuild after edits. The first Nix shell entry automatically configures and builds the firmware and links the pinned clangd binary. For first-time setup, follow the steps below.
 
 ## 1. Set up once
 
-- **Linux and macOS:** follow the [Nix installation instructions](https://nix.dev/install-nix), then open a new terminal.
+- **Linux and macOS:** follow the [Nix installation instructions](https://nix.dev/install-nix), then open a new terminal. Install [VSCodium](https://vscodium.com/) or [VS Code](https://code.visualstudio.com/) separately.
 - **Windows 11:** install [WSL2](https://learn.microsoft.com/windows/wsl/install) (for example, `wsl --install -d Ubuntu`). Install Nix **inside** Ubuntu, not in PowerShell. Clone the course repo inside the Linux filesystem (e.g. `~/mpt`), not under `/mnt/c`.
 
-Run `nix --version` to check the installation. `./start` handles the Nix flags for you. If you also want to run `nix develop` or `nix flake check` directly, add this line to `~/.config/nix/nix.conf` (create the directory/file if missing):
+Run `nix --version` to check the installation. The VS Code workspace scripts handle the Nix flags for you. If you also want to run `nix develop` or `nix flake check` directly, add this line to `~/.config/nix/nix.conf` (create the directory/file if missing):
 
 ```ini
 extra-experimental-features = nix-command flakes
 ```
 
-Alternatively, add `--extra-experimental-features 'nix-command flakes'` right after `nix` in the commands below. No AVR packages need to be installed globally. The first run downloads the pinned tools; the shell does not build, launch an editor, change USB permissions, or touch a board on entry.
+Alternatively, add `--extra-experimental-features 'nix-command flakes'` right after `nix` in the commands below. No AVR packages need to be installed globally. The first run downloads the pinned tools. A Nix `shellHook` then configures and builds the firmware if the ELF, HEX, or compilation database is missing. This happens in your checkout after the tools are available, not in a package's sandboxed `postInstall` phase. Shell entry never launches an editor, changes USB permissions, or flashes/touches a board.
 
 ## 2. Build firmware
 
@@ -23,19 +23,26 @@ From the repo root:
 
 ```sh
 nix develop
+```
+
+The shell performs the initial configure and build automatically, including when entered through VS Code's workspace scripts. Later shell entries skip it when all generated outputs are present. After editing sources, rebuild explicitly:
+
+```sh
 cmake --preset course
 cmake --build --preset course
 ```
 
-This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. For another editor, use `scripts/clangd` as the language server; it configures CMake automatically before starting, so completions work before the first build. Type `exit` to leave the shell.
+This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. Shell entry creates `.nix-tools/clangd`, a symlink to the original pinned clangd binary, not a launcher script. Other editors can use that path with the `--query-driver` argument from `.vscode/settings.json`. Type `exit` to leave the shell.
 
-## 3. Open VS Code
+## 3. Open the editor
 
-From the repo root, run `./start`. You don't need to enter `nix develop` first.
+Run `nix develop` once from the repo root to prepare the initial build and clangd symlink, then `exit`.
 
-**Linux desktop or macOS:** the launcher opens a separate course profile with Microsoft VS Code and pinned clangd and CMake Tools extensions from `vscode-with-extensions`. Press **Ctrl+Shift+B** (**⌘⇧B** on macOS) to configure and build. clangd automatically configures CMake on startup, so AVR completions and header lookup work before the first build (after the initial Nix downloads). This only generates build files; it does not compile or flash firmware. To use the CMake Tools commands instead, select the `course` configure/build preset. If you update `flake.lock`, quit all course Code windows before relaunching.
+**Linux desktop or macOS:** open the workspace in [VSCodium](https://vscodium.com/) (`codium .`) or VS Code (`code .`), outside Nix. Install the recommended **clangd** and **CDT GDB Debug Adapter** extensions when prompted. Both are open source and available on Open VSX. clangd provides language features; CDT connects GDB to PyAvrOCD. The editor and extensions are installed separately, not provided or pinned by the flake.
 
-**Windows 11 / WSL2:** install Windows VS Code and the [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl). Run `./start` from your WSL terminal. If Windows VS Code is not on your WSL `PATH`, use **WSL: Open Folder in WSL** from VS Code instead. Verify the bottom-left status shows **WSL**. Install the two recommended extensions **in WSL**, then use **Ctrl+Shift+B**. VS Code and its extensions are not pinned in this fallback; the build, language server, and flashing tools still come from the same `flake.lock`. Workspace scripts enter the Nix environment even when the editor was not launched from `nix develop`. You can also use this fallback with an existing editor on Linux or macOS.
+Trust the workspace to enable its tooling and terminal settings. New integrated terminals automatically enter `nix develop` using the workspace's **Course Nix shell** profile; build tasks also enter Nix through workspace scripts. If you opened VS Code before the first shell entry, open an integrated terminal to prepare the tools, then run **clangd: Restart language server**. Press **Ctrl+Shift+B** (**⌘⇧B** on macOS) to configure and rebuild after edits. None of these steps flashes firmware.
+
+**Windows 11 / WSL2:** for a non-proprietary editor, run the Linux build of VSCodium inside WSL2 using [WSLg](https://learn.microsoft.com/windows/wsl/tutorials/gui-apps). For the Windows VS Code workflow, install VS Code and the [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl). Run `code .` from the repo root in your WSL terminal. If Windows VS Code is not on your WSL `PATH`, use **WSL: Open Folder in WSL** from VS Code instead. Verify the bottom-left status shows **WSL**. Install the two recommended extensions **in WSL**, then use **Ctrl+Shift+B**. The same workspace terminal profile and scripts enter Nix inside WSL; the build, language server, and flashing tools come from `flake.lock` on all platforms.
 
 ## 4. Flash the Curiosity Nano
 
@@ -88,31 +95,41 @@ Or explicitly run **Tasks: Run Task → Flash Curiosity Nano** in VS Code; it bu
 
 | Host | Course tools and editor |
 | --- | --- |
-| `x86_64-linux` | Firmware build, clangd and AVRDUDE dry-run tested. Managed VS Code CLI and extension list tested. |
-| `aarch64-linux` | Shell and editor evaluate; native execution and USB still need testing. |
-| `x86_64-darwin`, `aarch64-darwin` | Shell and editor evaluate; native execution and USB still need testing. Nixpkgs 26.05 is the last series supporting Intel Macs. |
-| Windows 11 | Use the matching Linux shell in WSL2. Windows VS Code + WSL is the recommended UI; USB forwarding and the full WSL flow still need testing. No native Windows flake output. |
+| `x86_64-linux` | Firmware build, clangd and AVRDUDE dry-run tested. Use VSCodium or VS Code. |
+| `aarch64-linux` | Shell evaluates; native execution and USB still need testing. Use VSCodium or VS Code. |
+| `x86_64-darwin`, `aarch64-darwin` | Shell evaluates; native execution and USB still need testing. Use VSCodium or VS Code. Nixpkgs 26.05 is the last series supporting Intel Macs. |
+| Windows 11 | Use the matching Linux shell in WSL2. Run Linux VSCodium via WSLg or use Windows VS Code with its WSL extension. USB forwarding and the full WSL flow still need testing. No native Windows flake output. |
 
-The default shell provides AVR GCC/binutils and avr-libc (including AVR128DB48 headers and startup code), CMake, Ninja, Make, clangd/clang-format, Git, Python, socat, and AVRDUDE. `lsusb` and the optional GDB shell are Linux-only. The separate editor shell allows unfree VS Code and, on x86_64 Linux, the pinned Microsoft C/C++ debug adapter. clangd still provides language features. Nixpkgs also packages VSCodium, but it is not configured here; this setup matches the course's VS Code extensions and keeps the Microsoft WSL integration as the Windows fallback.
+The default shell provides AVR GCC/binutils and avr-libc (including AVR128DB48 headers and startup code), CMake, Ninja, Make, clangd/clang-format, Git, Python, socat, and AVRDUDE. `lsusb` is Linux-only; macOS has built-in USB diagnostics. The flake does not install an editor or VS Code extensions. Install those separately; clangd still provides language features using the pinned Nix toolchain.
 
-## Optional: live debugging with Bloom
+## Optional: live debugging with PyAvrOCD
 
-On **x86_64 Linux**, the optional `.#debug` shell provides **Bloom 2.1.0 (headless)** and GDB. `bloom.yaml` selects the AVR128DB48 Curiosity Nano's onboard UPDI debugger and binds the GDB server to `127.0.0.1:1442`. Bloom is not included in `./start` or the default shell. This flake does not package Bloom for ARM Linux or macOS. On x86_64 WSL2, the same shell is available, but live debugging with USB forwarding has not been tested.
+The optional `.#debug` shell provides **PyAvrOCD 2.0.0** and AVR-capable GDB on **Linux (x86_64 and ARM64)** and **macOS (Intel and Apple Silicon)**. `scripts/debug-server` selects the AVR128DB48 Curiosity Nano's onboard nEDBG probe over UPDI. The GDB server listens only on `127.0.0.1:1442`. PyAvrOCD is not included in the default shell. WSL2 requires USB forwarding; on macOS, approve the USB accessory prompt if it appears.
 
-### In VS Code
+### In VSCodium or VS Code
 
-1. Open the project with `./start`. On x86_64 WSL2 or when using an existing VS Code installation, install the **Microsoft C/C++** extension (`ms-vscode.cpptools`) in the environment where the project is open (in WSL, not on the Windows side). The Nix-managed x86_64 Linux editor already includes it.
+1. Open the project in VSCodium or VS Code. Install [**CDT GDB Debug Adapter**](https://open-vsx.org/extension/eclipse-cdt/cdt-gdb-vscode) (`eclipse-cdt.cdt-gdb-vscode`) in the environment where the project is open (in WSL, not on the Windows side). No Microsoft C/C++ extension is needed.
 2. Plug in the board and run **Tasks: Run Task → Flash Curiosity Nano**. Wait for the task to finish. Reflash after changing the firmware so the code on the board matches the ELF that GDB reads.
-3. Set a breakpoint on a line the firmware will reach (for example, inside the blink loop). In **Run and Debug**, choose **Debug Curiosity Nano (already flashed)** and press **F5**. VS Code builds the ELF, checks for the programmer, starts Bloom, and attaches GDB. **F5 does not flash the board**, but Bloom resets it when attaching. Use **Stop** to end the session before flashing again.
+3. Set a breakpoint on a line the firmware will reach (for example, inside the blink loop). In **Run and Debug**, choose **Debug Curiosity Nano (already flashed)** and press **F5**. The editor builds the ELF, checks for the programmer, starts PyAvrOCD, and connects GDB. **F5 does not flash the board**, but PyAvrOCD resets it when connecting. Use **Stop** to end the session before flashing again.
 
-If the pre-launch task can't see the board, check the cable and, in WSL2, USB forwarding. If the launch times out, check **Debug Console** for Bloom's messages, check the USB permissions, and close any other program using the board. Use a small number of breakpoints; the board has limited hardware breakpoint slots.
+If the pre-launch task can't see the board, check the cable and, in WSL2, USB forwarding. If the launch times out, check **Debug Console** for PyAvrOCD's messages, check the USB permissions, and close any other program using the board. This profile uses only hardware breakpoints, so keep the number of breakpoints small.
+
+### Memory view
+
+Install Eclipse CDT's [**Memory Inspector**](https://open-vsx.org/extension/eclipse-cdt/memory-inspector) (`eclipse-cdt.memory-inspector`) if you want a memory view. In WSL or SSH, install it in the remote environment where the debugger runs.
+
+1. Start debugging and pause at a breakpoint.
+2. Run **Memory: Show Memory Inspector** from the Command Palette. You can also right-click a variable in the **Variables** view and select **Show in Memory Inspector**.
+3. To inspect SRAM directly, enter `0x804000` as the start address. AVR GDB adds a `0x800000` offset to data addresses; the chip's SRAM starts at data address `0x4000`.
+
+Board-level memory reads still need testing. Avoid browsing memory-mapped peripheral registers indiscriminately: some registers have side effects when read.
 
 ### From a terminal
 
-1. Build and flash the current firmware as above. Wait for AVRDUDE to finish before starting Bloom; only one tool can use the programmer at a time.
-2. From the repo root, start Bloom and leave it running:
+1. Build and flash the current firmware as above. Wait for AVRDUDE to finish before starting PyAvrOCD; only one tool can use the programmer at a time.
+2. From the repo root, start the same PyAvrOCD server that VS Code uses:
    ```sh
-   nix develop .#debug -c bloom
+   ./scripts/debug-server
    ```
 3. In a second terminal in the repo root, open the matching ELF in GDB:
    ```sh
@@ -124,12 +141,12 @@ If the pre-launch task can't see the board, check the cable and, in WSL2, USB fo
    info registers
    step
    ```
-   `detach` ends the debug session. Stop Bloom if it's still running before flashing again.
+   `detach` ends the session and PyAvrOCD exits.
 
-Bloom startup was checked without hardware; on-board attach and stepping still need a real-board test. The VS Code profile is for x86_64 Linux only. On macOS, use Microchip MPLAB X if you need live debugging with the onboard probe. For **offline ELF inspection** on Linux, the same GDB command works without Bloom or a board; try `info line main`.
+Native execution on macOS and on-board attach and stepping still need testing. For **offline ELF inspection**, the same GDB command works without PyAvrOCD or a board; try `info line main`.
 
 ## Maintenance
 
 - `flake.lock` locks the immutable Nixpkgs release snapshot and its content hash. Use `nix flake update nixpkgs` deliberately and commit the updated lock only after validation.
 - `nix flake check` builds the starter, checks the AVR architecture, dry-runs programming/verification, and runs `clangd --check`. Run it on each native host to validate runtime support. `nix flake check --all-systems --no-build` checks evaluation only.
-- If CMake refers to an old container or Nix store path (e.g. after changing the pin), run `cmake --fresh --preset course` inside the shell. Remove the generated `build/` directory first if it still contains artifacts from a different generator. clangd configures CMake each time it starts; if configuration fails, fix the reported error and run **clangd: Restart language server**.
+- After changing `flake.lock`, enter a new `nix develop` shell to refresh the clangd symlink, then run **clangd: Restart language server** in VS Code. If CMake refers to an old container or Nix store path, run `cmake --fresh --preset course` and `cmake --build --preset course` inside the shell. Remove the generated `build/` directory first if it still contains artifacts from a different generator. clangd reads the compilation database directly; it does not configure CMake itself.

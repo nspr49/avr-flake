@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
+cd -- "$root"
+
+# Debug the existing firmware without requiring GDB to load it or using flash breakpoints.
+exec "$root/scripts/in-env" --debug pyavrocd --once \
+    --device avr128db48 --interface updi --tool nedbg --port 1442 \
+    --elf-file build/avr128db48_project.elf --onlywhenloaded disable --breakpoints hardware

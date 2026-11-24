@@ -1,8 +1,20 @@
 {
-  "clangd.path": "${workspaceFolder}/scripts/clangd",
-  "clangd.arguments": ["--background-index"],
-  "C_Cpp.intelliSenseEngine": "disabled",
-  "cmake.cmakePath": "${workspaceFolder}/scripts/cmake",
-  "cmake.useCMakePresets": "always",
-  "cmake.configureOnOpen": false
+  "clangd.path": "${workspaceFolder}/.nix-tools/clangd",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=/nix/store/*-mpt-dev-tools/bin/avr-gcc,/nix/store/*-mpt-dev-tools/bin/avr-g++,/nix/store/*-avr-gcc-wrapper-*/bin/avr-gcc,/nix/store/*-avr-gcc-wrapper-*/bin/avr-g++"
+  ],
+  "terminal.integrated.profiles.linux": {
+    "Course Nix shell": {
+      "path": "${workspaceFolder}/scripts/in-env"
+    }
+  },
+  "terminal.integrated.profiles.osx": {
+    "Course Nix shell": {
+      "path": "${workspaceFolder}/scripts/in-env"
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "Course Nix shell",
+  "terminal.integrated.defaultProfile.osx": "Course Nix shell",
+  "terminal.integrated.cwd": "${workspaceFolder}"
 }

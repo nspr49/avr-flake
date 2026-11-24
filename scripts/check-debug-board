@@ -1,7 +1,23 @@
 #!/bin/sh
 exec "$(dirname -- "$0")/in-env" --debug sh -c '
-    if ! lsusb -d 03eb:2175 2>/dev/null; then
-        echo "Curiosity Nano not found. Plug it in with a USB data cable (and attach it to WSL2 if applicable). See README.md." >&2
-        exit 1
+    if [ "$(uname -s)" = Darwin ]; then
+        # Match both IDs on the same USB device, without opening the probe.
+        if ioreg -a -r -c IOUSBHostDevice -d 1 -l | python3 -c "
+import plistlib
+import sys
+
+devices = plistlib.loads(sys.stdin.buffer.read())
+found = any(
+    d.get(\"idVendor\") == 0x03eb and d.get(\"idProduct\") == 0x2175
+    for d in devices
+)
+sys.exit(0 if found else 1)
+"; then
+            exit 0
+        fi
+    elif lsusb -d 03eb:2175 2>/dev/null; then
+        exit 0
     fi
+    echo "Curiosity Nano not found. Use a USB data cable, allow the accessory on macOS, or forward it to WSL2 as applicable. See README.md." >&2
+    exit 1
 '

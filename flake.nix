@@ -15,36 +15,10 @@
       };
       environments = forSystems (system:
         let
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfreePredicate = pkg:
-              builtins.elem (lib.getName pkg) [ "vscode" "vscode-extension-ms-vscode-cpptools" ];
-          };
+          pkgs = import nixpkgs { inherit system; };
           avr = pkgs.pkgsCross.avr;
           isLinux = pkgs.stdenv.hostPlatform.isLinux;
-          bloom = pkgs.callPackage ./bloom.nix { };
-          hasBloom = lib.meta.availableOn pkgs.stdenv.hostPlatform bloom;
-          cppDebug = pkgs.vscode-extensions.ms-vscode.cpptools.overrideAttrs (old: {
-            # Same VSIX and hash as Nixpkgs; use the upstream GitHub release
-            # because the Marketplace asset endpoint can stall downloads.
-            src = pkgs.fetchurl {
-              name = "ms-vscode-cpptools.vsix";
-              url = "https://github.com/microsoft/vscode-cpptools/releases/download/v${old.version}/cpptools-linux-x64.vsix";
-              hash = old.src.outputHash;
-            };
-          });
-          extensions = with pkgs.vscode-extensions; [
-            llvm-vs-code-extensions.vscode-clangd
-            ms-vscode.cmake-tools
-          ] ++ lib.optional hasBloom cppDebug;
-          editorAvailable = lib.all (lib.meta.availableOn pkgs.stdenv.hostPlatform)
-            ([ pkgs.vscode ] ++ extensions);
-          vscode = pkgs.vscode-with-extensions.override { vscodeExtensions = extensions; };
-          courseCode = pkgs.writeShellScriptBin "course-code" ''
-            # A separate profile prevents reuse of a desktop Code process that
-            # was started without the course PATH (and keeps updates separate).
-            exec ${vscode}/bin/code --user-data-dir "''${XDG_DATA_HOME:-$HOME/.local/share}/mpt-vscode" "$@"
-          '';
+          pyavrocd = pkgs.python3Packages.callPackage ./pyavrocd.nix { };
           tools = [
             avr.stdenv.cc             # AVR GCC, including binutils and avr-libc via its wrapper
             pkgs.avrdude
@@ -72,14 +46,37 @@
           };
           shell = extra: pkgs.mkShellNoCC (toolVars // {
             packages = [ toolEnv ] ++ extra;
+            shellHook = ''
+              # Build once in the writable checkout, never in a Nix postInstall
+              # sandbox. Use a subshell to preserve the caller's cwd, and keep
+              # stdout clean for tools that enter via in-env.
+              (
+                root=$PWD
+                while [ ! -f "$root/flake.nix" ] || [ ! -f "$root/cmake/avr-toolchain.cmake" ]; do
+                  [ "$root" != / ] || exit 0
+                  root=$(dirname "$root")
+                done
+                cd "$root" || exit 1
+                # Let desktop VS Code run clangd directly, without a Nix launcher.
+                mkdir -p .nix-tools
+                ln -sfn ${pkgs.clang-tools}/bin/clangd .nix-tools/clangd
+                if [ ! -s build/avr128db48_project.elf ] ||
+                   [ ! -s build/avr128db48_project.hex ] ||
+                   [ ! -s build/compile_commands.json ]; then
+                  printf '%s\n' 'Preparing the initial firmware build...'
+                  if ! { cmake --preset course && cmake --build --preset course; }; then
+                    printf '%s\n' 'Initial firmware build failed; fix the error and rebuild with cmake --preset course && cmake --build --preset course.'
+                  fi
+                fi
+              ) >&2
+            '';
           });
         in {
-          shells = { default = shell [ ]; }
-            // lib.optionalAttrs editorAvailable { editor = shell [ courseCode ]; }
-            // lib.optionalAttrs isLinux {
-              debug = shell ([ pkgs.gdb ] ++ lib.optional hasBloom bloom);
-            };
-          packages = lib.optionalAttrs hasBloom { inherit bloom; };
+          shells = {
+            default = shell [ ];
+            debug = shell [ pkgs.gdb pyavrocd ];
+          };
+          packages = { inherit pyavrocd; };
           checks.firmware = pkgs.runCommand "mpt-firmware-smoke-test" (toolVars // {
             nativeBuildInputs = [ toolEnv ];
           }) ''
@@ -87,9 +84,10 @@
             cp -R ${firmwareSource} workspace
             chmod -R u+w workspace
             cd workspace
-            # First-open completion must work without a prior configure/build.
-            ./scripts/clangd --check=src/main.c
+            cmake --preset course
             test -s build/compile_commands.json
+            clangd --check=src/main.c \
+              --query-driver='/nix/store/*-mpt-dev-tools/bin/avr-gcc,/nix/store/*-mpt-dev-tools/bin/avr-g++,/nix/store/*-avr-gcc-wrapper-*/bin/avr-gcc,/nix/store/*-avr-gcc-wrapper-*/bin/avr-g++'
             cmake --build --preset course
             avr-readelf -h build/avr128db48_project.elf | grep 'avr:104'
             avrdude -c dryrun -p avr128db48 -U flash:w:build/avr128db48_project.hex:i

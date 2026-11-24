@@ -1,21 +1,20 @@
 #!/bin/sh
-# Preserve cwd for tooling such as CMake Tools and clangd.
+# With no arguments, open an interactive Nix shell; otherwise preserve cwd
+# for tooling such as CMake Tools and clangd.
 set -eu
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
 shell=$root
 if [ "${1:-}" = --debug ]; then
     shift
-    if [ "$(uname -s)" != Linux ] || [ "$(uname -m)" != x86_64 ]; then
-        printf '%s\n' 'Bloom debugging is available only on x86_64 Linux (including x86_64 WSL2 with USB forwarding). See README.md.' >&2
-        exit 1
-    fi
-    # The VS Code adapter starts Bloom next to the GDB wrapper; Bloom needs
-    # the workspace root to find bloom.yaml.
-    if [ "${1:-}" = bloom ]; then
-        cd -- "$root"
-    fi
+    case $(uname -s) in
+        Linux|Darwin) ;;
+        *)
+            printf '%s\n' 'PyAvrOCD debugging in this workspace requires Linux or macOS. See README.md.' >&2
+            exit 1
+            ;;
+    esac
     shell=$root'#debug'
-elif [ "${MPT_DEV_SHELL:-}" = 1 ]; then
+elif [ "${MPT_DEV_SHELL:-}" = 1 ] && [ "$#" -gt 0 ]; then
     exec "$@"
 fi
 if command -v nix >/dev/null 2>&1; then
@@ -29,4 +28,7 @@ else
     exit 127
 fi
 
+if [ "$#" -eq 0 ]; then
+    exec "$nix" --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file "$shell"
+fi
 exec "$nix" --extra-experimental-features 'nix-command flakes' develop --no-update-lock-file "$shell" --command "$@"

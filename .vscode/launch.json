@@ -3,22 +3,21 @@
   "configurations": [
     {
       "name": "Debug Curiosity Nano (already flashed)",
-      "type": "cppdbg",
+      "type": "gdbtarget",
       "request": "launch",
       "program": "${workspaceFolder}/build/avr128db48_project.elf",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Prepare Curiosity Nano debug session",
-      "MIMode": "gdb",
-      "miDebuggerPath": "${workspaceFolder}/scripts/gdb",
-      "miDebuggerServerAddress": "127.0.0.1:1442",
-      "debugServerPath": "${workspaceFolder}/scripts/in-env",
-      "debugServerArgs": "--debug bloom",
-      "serverStarted": "Waiting for GDB RSP connection",
-      "filterStdout": true,
-      "serverLaunchTimeout": 20000,
-      "launchCompleteCommand": "exec-continue",
-      "hardwareBreakpoints": { "require": true },
-      "externalConsole": false
+      "gdb": "${workspaceFolder}/scripts/gdb",
+      "run": "all",
+      "target": {
+        "type": "remote",
+        "host": "127.0.0.1",
+        "server": "${workspaceFolder}/scripts/debug-server",
+        "serverParameters": [],
+        "serverPortRegExp": "Listening on port ([0-9]+) for gdb connection",
+        "portDetectionTimeout": 20000
+      }
     }
   ]
 }
