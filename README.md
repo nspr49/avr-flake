@@ -98,7 +98,7 @@ From the repo root inside `nix develop`:
 avrdude -c pkobn_updi -p avr128db48 -P usb -U flash:w:build/avr128db48_project.hex:i
 ```
 
-Or explicitly run **Tasks: Run Task → Flash Curiosity Nano** in VS Code; it builds first. Don't run AVRDUDE with sudo. If Linux sees the board with `lsusb` but AVRDUDE can't open it, check `id -nG` for `mpt-avr`, reconnect the board, and close other software using the programmer. If you just want to test the build and HEX without hardware, run `nix flake check`.
+Or run **Tasks: Run Task → Build and Flash Curiosity Nano** in VS Code to build and flash without starting the debugger. Don't run AVRDUDE with sudo. If Linux sees the board with `lsusb` but AVRDUDE can't open it, check `id -nG` for `mpt-avr`, reconnect the board, and close other software using the programmer. If you just want to test the build and HEX without hardware, run `nix flake check`.
 
 ## Platform and debugging notes
 
@@ -119,7 +119,7 @@ The optional `.#debug` shell provides **PyAvrOCD 2.0.0** and AVR-capable GDB on 
 
 1. Open the project in VSCodium or VS Code. Install [**CDT GDB Debug Adapter**](https://open-vsx.org/extension/eclipse-cdt/cdt-gdb-vscode) (`eclipse-cdt.cdt-gdb-vscode`) in the environment where the project is open (in WSL, not on the Windows side). No Microsoft C/C++ extension is needed.
 2. Plug in the board and set a breakpoint on a line the firmware will reach (for example, inside the blink loop).
-3. In **Run and Debug**, select **Flash and Debug Curiosity Nano** and click the green play button or press **F5**. **This overwrites the firmware on the board every time.** The editor builds the firmware, checks for the programmer, waits for AVRDUDE to flash and verify it, then starts PyAvrOCD and connects GDB. Use **Stop** to end the session before flashing again. To flash without debugging, use **Tasks: Run Task → Flash Curiosity Nano**.
+3. In **Run and Debug**, select **Build, Flash, and Debug Curiosity Nano** (the default launch profile) and click the green play button or press **F5**. **This overwrites the firmware on the board every time.** The editor builds the firmware, checks for the programmer, waits for AVRDUDE to flash and verify it, then starts PyAvrOCD and connects GDB. Use **Stop** to end the session before flashing again. To build and flash without debugging, use **Tasks: Run Task → Build and Flash Curiosity Nano**.
 
 If the pre-launch task can't see the board, check the cable and, in WSL2, USB forwarding. If the launch times out, check **Debug Console** for PyAvrOCD's messages, check the USB permissions, and close any other program using the board. This profile uses only hardware breakpoints, so keep the number of breakpoints small.
 

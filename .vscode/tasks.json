@@ -40,7 +40,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Flash Curiosity Nano",
+      "label": "Build and Flash Curiosity Nano",
       "type": "process",
       "command": "${workspaceFolder}/scripts/in-env",
       "args": ["avrdude", "-c", "pkobn_updi", "-p", "avr128db48", "-P", "usb", "-U", "flash:w:build/avr128db48_project.hex:i"],
