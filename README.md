@@ -109,10 +109,16 @@ The optional `.#debug` shell provides **PyAvrOCD 2.0.0** and AVR-capable GDB on 
 ### In VSCodium or VS Code
 
 1. Open the project in VSCodium or VS Code. Install [**CDT GDB Debug Adapter**](https://open-vsx.org/extension/eclipse-cdt/cdt-gdb-vscode) (`eclipse-cdt.cdt-gdb-vscode`) in the environment where the project is open (in WSL, not on the Windows side). No Microsoft C/C++ extension is needed.
-2. Plug in the board and run **Tasks: Run Task → Flash Curiosity Nano**. Wait for the task to finish. Reflash after changing the firmware so the code on the board matches the ELF that GDB reads.
-3. Set a breakpoint on a line the firmware will reach (for example, inside the blink loop). In **Run and Debug**, choose **Debug Curiosity Nano (already flashed)** and press **F5**. The editor builds the ELF, checks for the programmer, starts PyAvrOCD, and connects GDB. **F5 does not flash the board**, but PyAvrOCD resets it when connecting. Use **Stop** to end the session before flashing again.
+2. Plug in the board and set a breakpoint on a line the firmware will reach (for example, inside the blink loop).
+3. In **Run and Debug**, select **Flash and Debug Curiosity Nano** and click the green play button or press **F5**. **This overwrites the firmware on the board every time.** The editor builds the firmware, checks for the programmer, waits for AVRDUDE to flash and verify it, then starts PyAvrOCD and connects GDB. Use **Stop** to end the session before flashing again. To flash without debugging, use **Tasks: Run Task → Flash Curiosity Nano**.
 
 If the pre-launch task can't see the board, check the cable and, in WSL2, USB forwarding. If the launch times out, check **Debug Console** for PyAvrOCD's messages, check the USB permissions, and close any other program using the board. This profile uses only hardware breakpoints, so keep the number of breakpoints small.
+
+### GDB commands in the Debug Console
+
+With the target paused, prefix GDB commands with `>` in the Debug Console (for example, `>info registers`). Eclipse CDT does not use the `exec` or `-exec` prefix. For ordinary expressions, pause and select a frame in **Call Stack**; without a selected frame, CDT can report `Evaluation of expression without frameId is not supported.`
+
+For example, `>set {unsigned char}0x800422 = 8` writes one byte to `PORTB.DIRCLR` (device address `0x0422` plus GDB's `0x800000` data offset), clearing PB3's output direction. To toggle the output latch instead, write to `PORTB.OUTTGL` at `0x800427`.
 
 ### Memory view
 
