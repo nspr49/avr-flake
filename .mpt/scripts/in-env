@@ -2,7 +2,7 @@
 # With no arguments, open an interactive Nix shell; otherwise preserve cwd
 # for tooling such as CMake Tools and clangd.
 set -eu
-root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd -P)
 shell=$root
 if [ "${1:-}" = --debug ]; then
     shift

@@ -1,7 +1,15 @@
 cmake_minimum_required(VERSION 3.21)
 project(avr128db48_project LANGUAGES C CXX ASM)
 
-add_executable(firmware src/main.c)
+add_executable(firmware
+    src/main.c
+    Includes/AVR128DB48_I2C/AVR128DB48_I2C.c
+    Includes/I2C_LCD/I2C_LCD.c
+)
+target_include_directories(firmware PRIVATE
+    Includes/AVR128DB48_I2C
+    Includes/I2C_LCD
+)
 set_target_properties(firmware PROPERTIES
     OUTPUT_NAME "${PROJECT_NAME}"
     SUFFIX ".elf"

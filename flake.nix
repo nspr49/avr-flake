@@ -11,14 +11,14 @@
       forSystems = lib.genAttrs systems;
       firmwareSource = lib.fileset.toSource {
         root = ./.;
-        fileset = lib.fileset.unions [ ./.clangd ./CMakeLists.txt ./CMakePresets.json ./cmake ./scripts ./src ];
+        fileset = lib.fileset.unions [ ./.clangd ./CMakeLists.txt ./CMakePresets.json ./cmake ./.mpt/scripts ./Includes ./src ];
       };
       environments = forSystems (system:
         let
           pkgs = import nixpkgs { inherit system; };
           avr = pkgs.pkgsCross.avr;
           isLinux = pkgs.stdenv.hostPlatform.isLinux;
-          pyavrocd = pkgs.python3Packages.callPackage ./pyavrocd.nix { };
+          pyavrocd = pkgs.python3Packages.callPackage ./.mpt/pyavrocd.nix { };
           tools = [
             avr.stdenv.cc             # AVR GCC, including binutils and avr-libc via its wrapper
             pkgs.avrdude

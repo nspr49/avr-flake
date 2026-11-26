@@ -32,7 +32,7 @@ cmake --preset course
 cmake --build --preset course
 ```
 
-This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. VS Code starts the pinned clangd through `scripts/clangd`, even before you open the first Nix terminal. Shell entry also creates a direct link at `.nix-tools/clangd`; other editors can use it with the `--query-driver` argument from `.vscode/settings.json`. Type `exit` to leave the shell.
+This produces `build/avr128db48_project.hex` for flashing and `build/avr128db48_project.elf` with symbols. The preset also generates `build/compile_commands.json` for clangd. VS Code starts the pinned clangd through `.mpt/scripts/clangd`, even before you open the first Nix terminal. Shell entry also creates a direct link at `.nix-tools/clangd`; other editors can use it with the `--query-driver` argument from `.vscode/settings.json`. Type `exit` to leave the shell.
 
 ## 3. Open the editor
 
@@ -46,7 +46,7 @@ Trust the workspace to enable its tooling and terminal settings. New integrated 
 
 ```sh
 nix --version
-./scripts/in-env
+./.mpt/scripts/in-env
 ```
 
 Once you're in the course shell, run `cmake --preset course && cmake --build --preset course`.
@@ -62,10 +62,10 @@ Flash only when you're ready to replace the board's existing application. Connec
 Run as your normal user, **outside** the Nix shell:
 
 ```sh
-./hardware/install-udev
+./.mpt/hardware/install-udev
 ```
 
-The installer explicitly asks for sudo. It installs `hardware/70-mpt-curiosity-nano.rules` in `/etc/udev/rules.d`, creates the `mpt-avr` group, adds your account, and reloads the rules. The rule grants access only to the matching programmer's USB and hidraw devices, not all USB devices. Sign out and back in, then reconnect the board. On a managed lab PC, ask your administrator to apply the rule and grant access instead. On NixOS, declare the rule via `services.udev.extraRules` and the `mpt-avr` group/membership in your system configuration.
+The installer explicitly asks for sudo. It installs `.mpt/hardware/70-mpt-curiosity-nano.rules` in `/etc/udev/rules.d`, creates the `mpt-avr` group, adds your account, and reloads the rules. The rule grants access only to the matching programmer's USB and hidraw devices, not all USB devices. Sign out and back in, then reconnect the board. On a managed lab PC, ask your administrator to apply the rule and grant access instead. On NixOS, declare the rule via `services.udev.extraRules` and the `mpt-avr` group/membership in your system configuration.
 
 ### macOS: no udev
 
@@ -113,7 +113,7 @@ The default shell provides AVR GCC/binutils and avr-libc (including AVR128DB48 h
 
 ## Optional: live debugging with PyAvrOCD
 
-The optional `.#debug` shell provides **PyAvrOCD 2.0.0** and AVR-capable GDB on **Linux (x86_64 and ARM64)** and **macOS (Intel and Apple Silicon)**. `scripts/debug-server` selects the AVR128DB48 Curiosity Nano's onboard nEDBG probe over UPDI. The GDB server listens only on `127.0.0.1:1442`. PyAvrOCD is not included in the default shell. WSL2 requires USB forwarding; on macOS, approve the USB accessory prompt if it appears.
+The optional `.#debug` shell provides **PyAvrOCD 2.0.0** and AVR-capable GDB on **Linux (x86_64 and ARM64)** and **macOS (Intel and Apple Silicon)**. `.mpt/scripts/debug-server` selects the AVR128DB48 Curiosity Nano's onboard nEDBG probe over UPDI. The GDB server listens only on `127.0.0.1:1442`. PyAvrOCD is not included in the default shell. WSL2 requires USB forwarding; on macOS, approve the USB accessory prompt if it appears.
 
 ### In VSCodium or VS Code
 
@@ -146,7 +146,7 @@ Board-level memory reads still need testing. Avoid browsing memory-mapped periph
 1. Build and flash the current firmware as above. Wait for AVRDUDE to finish before starting PyAvrOCD; only one tool can use the programmer at a time.
 2. From the repo root, start the same PyAvrOCD server that VS Code uses:
    ```sh
-   ./scripts/debug-server
+   ./.mpt/scripts/debug-server
    ```
 3. In a second terminal in the repo root, open the matching ELF in GDB:
    ```sh

@@ -1,5 +1,5 @@
 {
-  "clangd.path": "${workspaceFolder}/scripts/clangd",
+  "clangd.path": "${workspaceFolder}/.mpt/scripts/clangd",
   "clangd.useScriptAsExecutable": true,
   "clangd.arguments": [
     "--background-index",
@@ -8,12 +8,12 @@
   "memory-view.trackDebuggers": ["gdbtarget"],
   "terminal.integrated.profiles.linux": {
     "Course Nix shell": {
-      "path": "${workspaceFolder}/scripts/in-env"
+      "path": "${workspaceFolder}/.mpt/scripts/in-env"
     }
   },
   "terminal.integrated.profiles.osx": {
     "Course Nix shell": {
-      "path": "${workspaceFolder}/scripts/in-env"
+      "path": "${workspaceFolder}/.mpt/scripts/in-env"
     }
   },
   "terminal.integrated.defaultProfile.linux": "Course Nix shell",

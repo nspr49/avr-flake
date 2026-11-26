@@ -8,12 +8,12 @@
       "program": "${workspaceFolder}/build/avr128db48_project.elf",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "Build and Flash Curiosity Nano",
-      "gdb": "${workspaceFolder}/scripts/gdb",
+      "gdb": "${workspaceFolder}/.mpt/scripts/gdb",
       "run": "all",
       "target": {
         "type": "remote",
         "host": "127.0.0.1",
-        "server": "${workspaceFolder}/scripts/debug-server",
+        "server": "${workspaceFolder}/.mpt/scripts/debug-server",
         "serverParameters": [],
         "serverPortRegExp": "Listening on port ([0-9]+) for gdb connection",
         "portDetectionTimeout": 20000

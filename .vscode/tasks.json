@@ -4,7 +4,7 @@
     {
       "label": "Configure firmware",
       "type": "process",
-      "command": "${workspaceFolder}/scripts/cmake",
+      "command": "${workspaceFolder}/.mpt/scripts/cmake",
       "args": ["--preset", "course"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
@@ -12,7 +12,7 @@
     {
       "label": "Build firmware",
       "type": "process",
-      "command": "${workspaceFolder}/scripts/cmake",
+      "command": "${workspaceFolder}/.mpt/scripts/cmake",
       "args": ["--build", "--preset", "course"],
       "options": { "cwd": "${workspaceFolder}" },
       "dependsOn": "Configure firmware",
@@ -34,7 +34,7 @@
     {
       "label": "Check Curiosity Nano USB",
       "type": "process",
-      "command": "${workspaceFolder}/scripts/check-debug-board",
+      "command": "${workspaceFolder}/.mpt/scripts/check-debug-board",
       "options": { "cwd": "${workspaceFolder}" },
       "dependsOn": "Build firmware",
       "problemMatcher": []
@@ -42,7 +42,7 @@
     {
       "label": "Build and Flash Curiosity Nano",
       "type": "process",
-      "command": "${workspaceFolder}/scripts/in-env",
+      "command": "${workspaceFolder}/.mpt/scripts/in-env",
       "args": ["avrdude", "-c", "pkobn_updi", "-p", "avr128db48", "-P", "usb", "-U", "flash:w:build/avr128db48_project.hex:i"],
       "options": { "cwd": "${workspaceFolder}" },
       "dependsOn": "Check Curiosity Nano USB",
