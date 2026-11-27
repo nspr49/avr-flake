@@ -6,12 +6,14 @@ Build and flash the **AVR128DB48 Curiosity Nano** without Docker or a separately
 
 **Daily workflow:** open the course folder in VSCodium (`codium .`) or VS Code (`code .`), then press **Ctrl+Shift+B** (macOS: **⌘⇧B**) to rebuild after edits. The first Nix shell entry automatically configures and builds the firmware and links the pinned clangd binary. For first-time setup, follow the steps below.
 
+## Prerequisites
+
+- **Linux and macOS:** [VS Code](https://code.visualstudio.com/) or [VSCodium](https://vscodium.com/), and [Nix](https://nix.dev/install-nix). Open a new terminal after installing Nix.
+- **Windows 11:** follow the [Windows prerequisites](README-windows.md#prerequisites) and install Nix **inside Ubuntu**.
+
 ## 1. Set up once
 
-- **Linux and macOS:** follow the [Nix installation instructions](https://nix.dev/install-nix), then open a new terminal. Install [VSCodium](https://vscodium.com/) or [VS Code](https://code.visualstudio.com/) separately.
-- **Windows 11:** install [WSL2](https://learn.microsoft.com/windows/wsl/install) (for example, `wsl --install -d Ubuntu`). Install Nix **inside** Ubuntu, not in PowerShell. [Extract the ZIP inside Ubuntu](README-windows.md#2-set-up-the-course-in-ubuntu), not under `/mnt/c`.
-
-Extract the course ZIP. No Git checkout is needed. Open a terminal in the extracted folder containing `flake.nix` and restore script permissions in case your ZIP extractor dropped them:
+Extract the course ZIP. On Windows, [extract it inside Ubuntu](README-windows.md#set-up-the-course-in-ubuntu), not under `/mnt/c`. No Git checkout is needed. Open a terminal in the extracted folder containing `flake.nix` and restore script permissions in case your ZIP extractor dropped them:
 
 ```sh
 chmod +x .mpt/scripts/* .mpt/hardware/install-udev
@@ -59,7 +61,7 @@ nix --version
 
 Once you're in the course shell, run `cmake --preset course && cmake --build --preset course`.
 
-**Windows 11 / WSL2:** for a non-proprietary editor, run the Linux build of VSCodium inside WSL2 using [WSLg](https://learn.microsoft.com/windows/wsl/tutorials/gui-apps). For the Windows VS Code workflow, install VS Code and the [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl). Run `code .` from the project folder in your WSL terminal. If Windows VS Code is not on your WSL `PATH`, use **WSL: Open Folder in WSL** from VS Code instead. Verify the bottom-left status shows **WSL**. [Install the editor extensions](#install-editor-extensions) in WSL, then use **Ctrl+Shift+B**. The same workspace terminal profile and scripts enter Nix inside WSL; the build, language server, and flashing tools come from `flake.lock` on all platforms.
+**Windows 11 / WSL2:** for a non-proprietary editor, run the Linux build of VSCodium inside WSL2 using [WSLg](https://learn.microsoft.com/windows/wsl/tutorials/gui-apps). For the Windows VS Code workflow, run `code .` from the project folder in your WSL terminal. If Windows VS Code is not on your WSL `PATH`, use **WSL: Open Folder in WSL** from VS Code instead. Verify the bottom-left status shows **WSL**. [Install the editor extensions](#install-editor-extensions) in WSL, then use **Ctrl+Shift+B**. The same workspace terminal profile and scripts enter Nix inside WSL; the build, language server, and flashing tools come from `flake.lock` on all platforms.
 
 ### Install editor extensions
 
@@ -87,22 +89,7 @@ Connect the board directly and approve the USB accessory prompt if macOS shows o
 
 ### WSL2: Linux permissions plus Windows USB forwarding
 
-1. Check `ps -p 1 -o comm=` in Ubuntu. If it isn't `systemd`, add the following to `/etc/wsl.conf` in Ubuntu (merge with existing settings), then run `wsl --shutdown` in PowerShell and reopen Ubuntu. Run the Linux USB permissions installer above in Ubuntu, then restart the WSL session so group membership takes effect.
-
-   ```ini
-   [boot]
-   systemd=true
-   ```
-
-2. Install [usbipd-win](https://learn.microsoft.com/windows/wsl/connect-usb), keep Ubuntu running, and use PowerShell. Replace `<BUSID>` with the ID shown for the board (`03eb:2175`):
-
-   ```powershell
-   usbipd list
-   usbipd bind --busid <BUSID>      # Administrator; one-time sharing
-   usbipd attach --wsl --busid <BUSID>  # Attach after reconnecting/restarting WSL
-   ```
-
-3. In Ubuntu inside `nix develop`, check `lsusb -d 03eb:2175`. If the device is absent, Nix and udev cannot fix the Windows forwarding.
+Follow the [Windows setup and USB forwarding steps](README-windows.md#flash-the-board). If AVRDUDE can’t see the board, run `lsusb -d 03eb:2175` inside `nix develop` in Ubuntu. If it’s absent, check the Windows USB forwarding first.
 
 ### Program the board
 
